@@ -1,0 +1,15 @@
+{
+  "name": "rv-stat-tracking",
+  "version": "1.0.0",
+  "description": "A golf score tracking application that records player statistics and exports them to an Excel sheet.",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "xlsx": "^0.17.0"
+  },
+  "author": "",
+  "license": "ISC"
+}

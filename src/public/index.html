@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Golf Stat Tracker Shawn A. Gamble</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      margin: 40px; 
+      background: #f2f2f2; 
+      color: #ffffff; 
+    }
+    h1 { 
+      text-align: center; 
+      color: #ffffff; 
+      background-color: #013220; 
+      padding: 20px; 
+      border-radius: 10px; 
+    }
+    form, table { 
+      max-width: 1000px; 
+      margin: 20px auto; 
+      background: #ffffff; 
+      padding: 20px; 
+      border-radius: 10px; 
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+    }
+    label { 
+      display: block; 
+      margin-top: 10px; 
+      color: #013220; 
+    }
+    input, select { 
+      width: 100%; 
+      padding: 8px; 
+      margin-top: 5px; 
+      border: 1px solid #013220; 
+      border-radius: 5px; 
+    }
+    button { 
+      margin-top: 15px; 
+      padding: 10px 15px; 
+      background-color: #013220; 
+      color: white; 
+      border: none; 
+      border-radius: 5px; 
+      cursor: pointer; 
+    }
+    button:hover { 
+      background-color: #015c40; 
+    }
+    table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      margin-top: 20px; 
+    }
+    th, td { 
+      border: 1px solid #013220; 
+      padding: 8px; 
+      text-align: center; 
+    }
+    th { 
+      background-color: #013220; 
+      color: white; 
+    }
+    .hole-header {
+      color: #ffffff;
+      background-color: #013220;
+      padding: 10px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Golf Score Tracker</h1>
+  <form id="golfForm">
+    <label>Player Name: <input type="text" name="name" required></label>
+    <label>Select Course Section:
+      <select name="courseSection" required>
+        <option value="Front Nine">Front Nine</option>
+        <option value="Back Nine">Back Nine</option>
+      </select>
+    </label>
+    <div id="holesContainer"></div>
+    <button type="submit">Add Entry</button>
+  </form>
+
+  <table id="entriesTable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Hole</th>
+        <th>Score</th>
+        <th>Putts</th>
+        <th>Fairway</th>
+        <th>GIR</th>
+        <th>Chips</th>
+        <th>Bunker</th>
+        <th>Approach (yds)</th>
+        <th>Putt Dist (ft)</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const holesContainer = document.getElementById('holesContainer');
+    for (let i = 1; i <= 9; i++) {
+      const section = document.createElement('div');
+      section.innerHTML = `
+        <h3 class="hole-header">Hole ${i}</h3>
+        <label>Score: <input type="number" name="score${i}" required></label>
+        <label>Putts: <input type="number" name="putts${i}" required></label>
+        <label>Fairway Hit:
+          <select name="fairway${i}">
+            <option value="Yes">Yes</option>
+            <option value="Left">Left</option>
+            <option value="Right">Right</option>
+          </select>
+        </label>
+        <label>Green in Regulation:
+          <select name="gir${i}">
+            <option value="Yes">Yes</option>
+            <option value="Left">Left</option>
+            <option value="Right">Right</option>
+            <option value="Short">Short</option>
+          </select>
+        </label>
+        <label>Chips: <input type="number" name="chips${i}"></label>
+        <label>Bunker Shots: <input type="number" name="bunker${i}"></label>
+        <label>Approach Distance (yards): <input type="number" name="approach${i}"></label>
+        <label>Distance from First Putt to Hole (feet): <input type="number" name="puttDistance${i}"></label>
+        <hr>
+      `;
+      holesContainer.appendChild(section);
+    }
+
+    document.getElementById('golfForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+      const form = event.target;
+      const data = new FormData(form);
+      const name = data.get('name');
+      const courseSection = data.get('courseSection');
+
+      const entries = [];
+
+      for (let i = 1; i <= 18; i++) {
+        const score = data.get(`score${i}`);
+        const putts = data.get(`putts${i}`);
+        const fairway = data.get(`fairway${i}`);
+        const gir = data.get(`gir${i}`);
+        const chips = data.get(`chips${i}`);
+        const bunker = data.get(`bunker${i}`);
+        const approach = data.get(`approach${i}`);
+        const puttDistance = data.get(`puttDistance${i}`);
+
+        if (score || putts || fairway || gir || chips || bunker || approach || puttDistance) {
+          entries.push({
+            name: name || '',
+            courseSection: courseSection || '',
+            hole: i,
+            score: score || '',
+            putts: putts || '',
+            fairway: fairway || '',
+            gir: gir || '',
+            chips: chips || '',
+            bunker: bunker || '',
+            approach: approach || '',
+            puttDistance: puttDistance || ''
+          });
+        }
+      }
+
+      if (entries.length === 0) {
+        alert('Please fill out at least one field for one hole.');
+        return;
+      }
+
+      // Send data to the backend
+      try {
+        const response = await fetch('/save-stats', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(entries)
+        });
+
+        if (response.ok) {
+          alert('Data saved to Excel file successfully!');
+        } else {
+          alert('Failed to save data to Excel file.');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while saving data.');
+      }
+
+      form.reset();
+    });
+  </script>
+</body>
+</html>
